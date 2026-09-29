@@ -1,0 +1,7 @@
+name = "keuangan-rumah-tangga"
+main = "_worker.js"
+compatibility_date = "2026-09-29"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"

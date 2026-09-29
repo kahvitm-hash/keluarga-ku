@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pencatatan Keuangan Rumah Tangga</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f5f7fb;color:#222}
+    .container{max-width:1000px;margin:auto;padding:24px}
+    h1{margin-top:0}.card{background:#fff;border-radius:12px;padding:18px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+    input,select,button{padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px}
+    input,select{width:100%;box-sizing:border-box}
+    button{cursor:pointer;background:#111;color:#fff}.danger{background:#c62828}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stat{font-size:22px;font-weight:bold;margin-top:6px}.muted{color:#666;font-size:13px}
+    table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #eee}
+    .income{color:#188038}.expense{color:#d93025}
+    .row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+    #status{margin-top:10px}.success{color:#188038}.error{color:#d93025}
+    @media(max-width:700px){.grid,.form-grid{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}table{font-size:12px}.container{padding:12px}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Pencatatan Keuangan Rumah Tangga</h1>
+
+  <div class="grid">
+    <div class="card"><div class="muted">Total Pemasukan</div><div id="totalPemasukan" class="stat income">Rp0</div></div>
+    <div class="card"><div class="muted">Total Pengeluaran</div><div id="totalPengeluaran" class="stat expense">Rp0</div></div>
+    <div class="card"><div class="muted">Saldo</div><div id="saldo" class="stat">Rp0</div></div>
+    <div class="card"><div class="muted">Pengeluaran Hari Ini</div><div id="pengeluaranHariIni" class="stat expense">Rp0</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Tambah Transaksi</h2>
+    <div class="form-grid">
+      <div><label>Tanggal</label><input type="date" id="tanggal"></div>
+      <div><label>Tipe</label>
+        <select id="tipe"><option value="Pengeluaran">Pengeluaran</option><option value="Pemasukan">Pemasukan</option></select>
+      </div>
+    </div>
+    <div id="items" style="margin-top:12px">
+      <div class="row item-row">
+        <input class="keterangan" placeholder="Keterangan / deskripsi">
+        <input class="jumlah" type="number" min="0" step="1" placeholder="Jumlah">
+        <button type="button" onclick="hapusRow(this)" class="danger">Hapus</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button type="button" onclick="tambahRow()">+ Tambah Item</button>
+      <button type="button" onclick="simpan()">Simpan Transaksi</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>Pengaturan</h2>
+    <div class="row">
+      <input id="limitHarian" type="number" min="0" step="1" placeholder="Limit harian">
+      <button type="button" onclick="simpanLimit()">Simpan Limit</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Riwayat Transaksi</h2>
+    <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Tanggal</th><th>Tipe</th><th>Keterangan</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+        <tbody id="riwayat"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "/api";
+
+function rupiah(n){
+  return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n)||0);
+}
+
+async function apiRequest(action,payload={}){
+  try{
+    const response=await fetch(API_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action,payload})
+    });
+    const text=await response.text();
+    let result;
+    try{ result=JSON.parse(text); }
+    catch(e){ throw new Error("Server mengembalikan response bukan JSON: "+text.slice(0,200)); }
+    if(!response.ok) throw new Error(result.message||("HTTP "+response.status));
+    return result;
+  }catch(error){
+    console.error(error);
+    return {success:false,message:error.message||"Gagal terhubung ke server."};
+  }
+}
+
+function setStatus(message,ok=false){
+  const el=document.getElementById("status");
+  el.textContent=message;
+  el.className=ok?"success":"error";
+}
+
+function tambahRow(){
+  const div=document.createElement("div");
+  div.className="row item-row";
+  div.innerHTML='<input class="keterangan" placeholder="Keterangan / deskripsi"><input class="jumlah" type="number" min="0" step="1" placeholder="Jumlah"><button type="button" onclick="hapusRow(this)" class="danger">Hapus</button>';
+  document.getElementById("items").appendChild(div);
+}
+
+function hapusRow(btn){
+  const rows=document.querySelectorAll(".item-row");
+  if(rows.length<=1){ setStatus("Minimal harus ada satu item.",false); return; }
+  btn.closest(".item-row").remove();
+}
+
+async function simpan(){
+  const tanggal=document.getElementById("tanggal").value;
+  const tipe=document.getElementById("tipe").value;
+  const items=[...document.querySelectorAll(".item-row")].map(row=>({
+    keterangan:row.querySelector(".keterangan").value.trim(),
+    jumlah:Number(row.querySelector(".jumlah").value)
+  })).filter(x=>x.keterangan && x.jumlah>0);
+
+  if(!tanggal) return setStatus("Tanggal wajib diisi.");
+  if(!items.length) return setStatus("Isi minimal satu item transaksi dengan jumlah lebih dari 0.");
+
+  setStatus("Menyimpan...",true);
+  const result=await apiRequest("simpanTransaksi",{tanggal,tipe,items});
+  if(!result.success) return setStatus(result.message||"Gagal menyimpan.");
+
+  setStatus(result.message||"Transaksi berhasil disimpan.",true);
+  document.querySelectorAll(".keterangan").forEach(x=>x.value="");
+  document.querySelectorAll(".jumlah").forEach(x=>x.value="");
+  await loadDashboard();
+}
+
+async function simpanLimit(){
+  const limit=Number(document.getElementById("limitHarian").value);
+  if(!(limit>=0)) return setStatus("Limit harian tidak valid.");
+  const result=await apiRequest("simpanLimitHarian",{limitBaru:limit});
+  setStatus(result.message||"Selesai.",!!result.success);
+  if(result.success) await loadDashboard();
+}
+
+async function hapusTransaksi(rowIndex){
+  if(!confirm("Hapus transaksi ini?")) return;
+  const result=await apiRequest("hapusTransaksi",{rowIndex});
+  setStatus(result.message||"Selesai.",!!result.success);
+  if(result.success) await loadDashboard();
+}
+
+function renderDashboard(data){
+  document.getElementById("totalPemasukan").textContent=rupiah(data.totalPemasukan);
+  document.getElementById("totalPengeluaran").textContent=rupiah(data.totalPengeluaran);
+  document.getElementById("saldo").textContent=rupiah(data.saldo);
+  document.getElementById("pengeluaranHariIni").textContent=rupiah(data.pengeluaranHariIni);
+  document.getElementById("limitHarian").value=data.limitHarian??"";
+
+  const tbody=document.getElementById("riwayat");
+  tbody.innerHTML="";
+  (data.riwayat||[]).forEach(x=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${escapeHtml(x.tanggal)}</td>
+      <td class="${x.tipe==="Pemasukan"?"income":"expense"}">${escapeHtml(x.tipe)}</td>
+      <td>${escapeHtml(x.keterangan)}</td>
+      <td>${rupiah(x.jumlah)}</td>
+      <td><button class="danger" onclick="hapusTransaksi(${Number(x.rowIndex)})">Hapus</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(v){
+  return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+
+async function loadDashboard(){
+  const result=await apiRequest("getDashboardData",{});
+  if(!result.success){ setStatus(result.message||"Gagal mengambil data."); return; }
+  renderDashboard(result);
+}
+
+document.getElementById("tanggal").value=new Date().toISOString().slice(0,10);
+loadDashboard();
+</script>
+</body>
+</html>
