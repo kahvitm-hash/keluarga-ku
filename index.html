@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Pencatatan Keuangan Rumah Tangga</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f9; }
+    .card-custom { border: none; border-radius: 12px; }
+    .item-row { background-color: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+  </style>
+</head>
+<body class="py-4">
+
+  <div class="container" style="max-width: 900px;">
+    <h2 class="text-center mb-4 fw-bold">Dashboard Keuangan Rumah Tangga</h2>
+
+    <!-- Alert Warning Limit Harian -->
+    <div id="alertLimit" class="alert d-none shadow-sm" role="alert">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong id="alertTitle">Peringatan Dana Harian!</strong>
+          <div id="alertBody">Penggunaan dana hari ini telah mendekati/melebihi limit.</div>
+        </div>
+        <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modalLimit">Edit Limit</button>
+      </div>
+    </div>
+
+    <!-- Ringkasan Dashboard -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card card-custom bg-primary text-white p-3 shadow-sm">
+          <small>Total Saldo</small>
+          <h4 id="valSaldo" class="mb-0">Rp 0</h4>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-custom bg-success text-white p-3 shadow-sm">
+          <small>Total Pemasukan</small>
+          <h4 id="valPemasukan" class="mb-0">Rp 0</h4>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-custom bg-danger text-white p-3 shadow-sm">
+          <small>Total Pengeluaran</small>
+          <h4 id="valPengeluaran" class="mb-0">Rp 0</h4>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-custom bg-warning text-dark p-3 shadow-sm">
+          <small>Pengeluaran Hari Ini</small>
+          <h4 id="valPengeluaranHariIni" class="mb-0">Rp 0</h4>
+          <small id="valLimitInfo" class="text-muted mt-1" style="font-size: 0.75rem;">Limit: Rp 0</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Input Invoice / Transaksi -->
+    <div class="card card-custom shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Input Transaksi / Invoice Belanja</h5>
+        <form id="formTransaksi">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Tanggal Transaksi</label>
+              <input type="date" id="tanggal" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tipe Transaksi</label>
+              <select id="tipe" class="form-select" required>
+                <option value="Pengeluaran">Pengeluaran</option>
+                <option value="Pemasukan">Pemasukan</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="form-label fw-bold">Daftar Item / Belanjaan</label>
+          <div id="containerItem">
+            <!-- Item Pertama -->
+            <div class="item-row row g-2 align-items-center">
+              <div class="col-md-7">
+                <input type="text" class="form-control input-keterangan" placeholder="Ketik keterangan / nama barang" required>
+              </div>
+              <div class="col-md-4">
+                <input type="number" class="form-control input-jumlah" placeholder="Jumlah (Rp)" min="1" required>
+              </div>
+              <div class="col-md-1 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="hapusRow(this)">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="tambahRow()">+ Tambah Item Belanja</button>
+            <button type="submit" id="btnSubmit" class="btn btn-primary">Simpan Transaksi</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabel Riwayat Transaksi -->
+    <div class="card card-custom shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Riwayat Transaksi</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Tipe</th>
+                <th>Keterangan / Deskripsi</th>
+                <th>Jumlah</th>
+              </tr>
+            </thead>
+            <tbody id="tabelRiwayat">
+              <tr>
+                <td colspan="4" class="text-center text-muted">Memuat data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edit Limit Harian -->
+  <div class="modal fade" id="modalLimit" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Atur Limit Dana Harian</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Masukkan Limit Pengeluaran Per Hari (Rp)</label>
+          <input type="number" id="inputLimitBaru" class="form-control" placeholder="Contoh: 150000" min="0">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-primary" onclick="simpanLimit()">Simpan Limit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('tanggal').valueAsDate = new Date();
+
+    function formatRupiah(nominal) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+    }
+
+    // Tambah baris item belanja
+    function tambahRow() {
+      var container = document.getElementById('containerItem');
+      var div = document.createElement('div');
+      div.className = 'item-row row g-2 align-items-center';
+      div.innerHTML = `
+        <div class="col-md-7">
+          <input type="text" class="form-control input-keterangan" placeholder="Ketik keterangan / nama barang" required>
+        </div>
+        <div class="col-md-4">
+          <input type="number" class="form-control input-jumlah" placeholder="Jumlah (Rp)" min="1" required>
+        </div>
+        <div class="col-md-1 text-center">
+          <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="hapusRow(this)">✕</button>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+
+    // Hapus baris item belanja
+    function hapusRow(btn) {
+      var container = document.getElementById('containerItem');
+      if (container.children.length > 1) {
+        btn.closest('.item-row').remove();
+      } else {
+        alert('Minimal harus ada satu item belanja.');
+      }
+    }
+
+    // Load Data Dashboard
+    function loadData() {
+      google.script.run.withSuccessHandler(function(res) {
+        document.getElementById('valSaldo').innerText = formatRupiah(res.saldo);
+        document.getElementById('valPemasukan').innerText = formatRupiah(res.totalPemasukan);
+        document.getElementById('valPengeluaran').innerText = formatRupiah(res.totalPengeluaran);
+        document.getElementById('valPengeluaranHariIni').innerText = formatRupiah(res.pengeluaranHariIni);
+        document.getElementById('valLimitInfo').innerText = 'Limit: ' + formatRupiah(res.limitHarian);
+        document.getElementById('inputLimitBaru').value = res.limitHarian;
+
+        // Logika Peringatan Limit Harian
+        var alertBox = document.getElementById('alertLimit');
+        var alertTitle = document.getElementById('alertTitle');
+        var alertBody = document.getElementById('alertBody');
+
+        if (res.pengeluaranHariIni >= res.limitHarian) {
+          alertBox.className = 'alert alert-danger shadow-sm';
+          alertTitle.innerText = '⚠️ Limit Harian Terlampaui!';
+          alertBody.innerText = `Pengeluaran hari ini (${formatRupiah(res.pengeluaranHariIni)}) telah melebihi limit (${formatRupiah(res.limitHarian)}).`;
+        } else if (res.pengeluaranHariIni >= (res.limitHarian * 0.8)) {
+          alertBox.className = 'alert alert-warning shadow-sm';
+          alertTitle.innerText = '⚡ Mendekati Limit Harian!';
+          alertBody.innerText = `Pengeluaran hari ini (${formatRupiah(res.pengeluaranHariIni)}) sudah mencapai 80% dari limit (${formatRupiah(res.limitHarian)}).`;
+        } else {
+          alertBox.className = 'alert d-none';
+        }
+
+        // Render Tabel Riwayat
+        var tbody = document.getElementById('tabelRiwayat');
+        tbody.innerHTML = '';
+        if (res.riwayat.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Belum ada data.</td></tr>';
+          return;
+        }
+
+        res.riwayat.forEach(function(item) {
+          var badgeClass = item.tipe === 'Pemasukan' ? 'bg-success' : 'bg-danger';
+          var row = `<tr>
+            <td>${item.tanggal}</td>
+            <td><span class="badge ${badgeClass}">${item.tipe}</span></td>
+            <td>${item.keterangan}</td>
+            <td>${formatRupiah(item.jumlah)}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+      }).getDashboardData();
+    }
+
+    // Simpan Transaksi (Invoice Multi-Item)
+    document.getElementById('formTransaksi').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      var btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      var items = [];
+      var rows = document.querySelectorAll('.item-row');
+      rows.forEach(function(row) {
+        var ket = row.querySelector('.input-keterangan').value;
+        var jml = row.querySelector('.input-jumlah').value;
+        items.push({ keterangan: ket, jumlah: jml });
+      });
+
+      var payload = {
+        tanggal: document.getElementById('tanggal').value,
+        tipe: document.getElementById('tipe').value,
+        items: items
+      };
+
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message);
+        btn.disabled = false;
+        btn.innerText = 'Simpan Transaksi';
+        
+        if (res.success) {
+          // Reset form ke 1 item kosong
+          document.getElementById('containerItem').innerHTML = `
+            <div class="item-row row g-2 align-items-center">
+              <div class="col-md-7">
+                <input type="text" class="form-control input-keterangan" placeholder="Ketik keterangan / nama barang" required>
+              </div>
+              <div class="col-md-4">
+                <input type="number" class="form-control input-jumlah" placeholder="Jumlah (Rp)" min="1" required>
+              </div>
+              <div class="col-md-1 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="hapusRow(this)">✕</button>
+              </div>
+            </div>
+          `;
+          loadData();
+        }
+      }).simpanTransaksi(payload);
+    });
+
+    // Simpan Pengaturan Limit Harian
+    function simpanLimit() {
+      var limitBaru = document.getElementById('inputLimitBaru').value;
+      if (!limitBaru) return;
+
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message);
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalLimit'));
+        modal.hide();
+        loadData();
+      }).simpanLimitHarian(limitBaru);
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
