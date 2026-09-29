@@ -6,6 +6,7 @@ export default {
       const url = new URL(request.url);
       const targetUrl = new URL(GAS_URL);
 
+      // Teruskan semua query parameter
       url.searchParams.forEach((value, key) => {
         targetUrl.searchParams.append(key, value);
       });
