@@ -288,6 +288,27 @@
       }).simpanLimitHarian(limitBaru);
     }
 
+    // Pada baris looping res.riwayat.forEach di Index.html:
+var row = `<tr>
+  <td>${item.tanggal}</td>
+  <td><span class="badge ${badgeClass}">${item.tipe}</span></td>
+  <td>${item.keterangan}</td>
+  <td>${formatRupiah(item.jumlah)}</td>
+  <td>
+    <button class="btn btn-sm btn-outline-danger" onclick="konfirmasiHapus(${index})">Hapus</button>
+  </td>
+</tr>`;
+
+    // Tambahkan fungsi JavaScript di Index.html:
+function konfirmasiHapus(index) {
+  if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
+    google.script.run.withSuccessHandler(function(res) {
+      alert(res.message);
+      loadData();
+    }).hapusTransaksi(index);
+  }
+}
+
     window.onload = loadData;
   </script>
 </body>
