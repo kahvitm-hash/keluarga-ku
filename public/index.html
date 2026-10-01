@@ -1055,13 +1055,31 @@ let selectedMonth = "";
 
 /* ==========================================================
    INITIAL
-   ========================================================== */
-
-document.addEventListener(
+   =========================document.addEventListener(
   "DOMContentLoaded",
   async function () {
 
     setTanggalHariIni();
+
+
+    const select =
+      document.getElementById(
+        "selectBulan"
+      );
+
+
+    select.addEventListener(
+      "change",
+      async function () {
+
+        selectedMonth =
+          this.value;
+
+        await loadDashboard();
+
+      }
+    );
+
 
     await loadDaftarBulan();
 
@@ -1291,15 +1309,11 @@ async function loadDaftarBulan() {
       );
 
 
-    if (
-      !res.success
-    ) {
+    if (!res.success) {
 
       throw new Error(
-
         res.message ||
         "Gagal mengambil daftar bulan."
-
       );
 
     }
@@ -1311,18 +1325,23 @@ async function loadDaftarBulan() {
       );
 
 
-    select.innerHTML =
-      "";
-
-
     const list =
-      res.listBulan || [];
+      Array.isArray(
+        res.listBulan
+      )
+        ? res.listBulan
+        : [];
 
+
+    select.innerHTML = "";
+
+
+    /*
+     * MASUKKAN SEMUA BULAN
+     */
 
     list.forEach(
-      function (
-        bulan
-      ) {
+      function (bulan) {
 
         const option =
           document.createElement(
@@ -1348,11 +1367,13 @@ async function loadDaftarBulan() {
     );
 
 
-    selectedMonth =
-      res.currentMonth;
-
+    /*
+     * PERTAHANKAN BULAN
+     * YANG SEDANG DIPILIH
+     */
 
     if (
+      selectedMonth &&
       list.includes(
         selectedMonth
       )
@@ -1361,7 +1382,32 @@ async function loadDaftarBulan() {
       select.value =
         selectedMonth;
 
-    } else if (
+    }
+
+    /*
+     * Kalau belum ada pilihan,
+     * gunakan bulan sekarang.
+     */
+
+    else if (
+      list.includes(
+        res.currentMonth
+      )
+    ) {
+
+      selectedMonth =
+        res.currentMonth;
+
+      select.value =
+        selectedMonth;
+
+    }
+
+    /*
+     * Fallback ke bulan pertama
+     */
+
+    else if (
       list.length > 0
     ) {
 
@@ -1372,19 +1418,6 @@ async function loadDaftarBulan() {
         selectedMonth;
 
     }
-
-
-    select.addEventListener(
-      "change",
-      async function () {
-
-        selectedMonth =
-          this.value;
-
-        await loadDashboard();
-
-      }
-    );
 
 
     await loadDashboard();
@@ -1398,10 +1431,8 @@ async function loadDaftarBulan() {
 
 
     alert(
-
       "Gagal memuat daftar bulan: " +
       error.message
-
     );
 
   }
