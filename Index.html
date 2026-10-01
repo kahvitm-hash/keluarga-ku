@@ -2,828 +2,224 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pencatatan Keuangan Rumah Tangga</title>
-
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      background-color: #f4f6f9;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .card-custom {
-      border: none;
-      border-radius: 12px;
-    }
-
-    .item-row {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #e9ecef;
-    }
-
-    .table td,
-    .table th {
-      vertical-align: middle;
-    }
-
-    .loading {
-      opacity: .65;
-      pointer-events: none;
-    }
+    body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .card-custom { border: none; border-radius: 12px; }
+    .item-row { background-color: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; }
   </style>
 </head>
-
 <body class="py-4">
 
-<div class="container" style="max-width: 900px;">
+  <div class="container" style="max-width: 950px;">
+    
+    <!-- Header & Filter Periode Bulan / Tahun -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <h2 class="fw-bold text-dark mb-0">Keuangan Rumah Tangga</h2>
+      
+      <div class="d-flex align-items-center gap-2">
+        <label class="fw-semibold text-muted small mb-0">Periode:</label>
+        <select id="filterBulan" class="form-select form-select-sm" style="width: 140px;" onchange="loadData()">
+          <option value="0">Januari</option>
+          <option value="1">Februari</option>
+          <option value="2">Maret</option>
+          <option value="3">April</option>
+          <option value="4">Mei</option>
+          <option value="5">Juni</option>
+          <option value="6">Juli</option>
+          Untuk membuat pencatatan bulanan yang rapi dan terstruktur di Google Apps Script & Google Sheets, Anda memerlukan dua penyesuaian utama:
 
-  <h2 class="text-center mb-4 fw-bold text-dark">
-    Keuangan Rumah Tangga
-  </h2>
+1. **Perbaikan Struktur Spreadsheet (Backend)**: Menambahkan kolom **Bulan-Tahun** (misal: `2026-10`) di sheet transaksi agar data dapat dikelompokkan (group by) per bulan secara otomatis.
+2. **Perbaikan Tampilan / Dashboard (Frontend HTML)**: Menambahkan dropdown filter **Pilih Bulan** di bagian atas dashboard untuk menampilkan grafik (Pemasukan vs Pengeluaran per bulan) dan riwayat transaksi sesuai bulan yang dipilih.
 
-  <!-- ALERT LIMIT -->
-  <div id="alertLimit" class="alert d-none shadow-sm" role="alert">
-    <div class="d-flex justify-content-between align-items-center gap-3">
-      <div>
-        <strong id="alertTitle">Peringatan Dana Harian!</strong>
-        <div id="alertBody">
-          Penggunaan dana hari ini telah mendekati atau melebihi limit.
-        </div>
-      </div>
+---
 
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-dark fw-semibold"
-        data-bs-toggle="modal"
-        data-bs-target="#modalLimit"
-      >
-        Ubah Limit
-      </button>
-    </div>
-  </div>
+### 1. Update File Backend `Kode.gs` (Google Apps Script)
 
-  <!-- DASHBOARD -->
-  <div class="row g-3 mb-4">
+Ganti seluruh isi file `Kode.gs` Anda dengan kode berikut. Kode ini secara otomatis menambahkan parameter filter bulan dan mendukung grafik data bulanan.
 
-    <div class="col-md-3 col-6">
-      <div class="card card-custom bg-primary text-white p-3 shadow-sm h-100">
-        <small class="opacity-75">Total Saldo</small>
-        <h4 id="valSaldo" class="mb-0 fw-bold">Rp 0</h4>
-      </div>
-    </div>
+```javascript
+function doGet(e) {
+  return HtmlService.createTemplateFromFile('Index')
+    .evaluate()
+    .setTitle('Keuangan Rumah Tangga Bulanan')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
 
-    <div class="col-md-3 col-6">
-      <div class="card card-custom bg-success text-white p-3 shadow-sm h-100">
-        <small class="opacity-75">Pemasukan (Total)</small>
-        <h4 id="valPemasukan" class="mb-0 fw-bold">Rp 0</h4>
-      </div>
-    </div>
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var action = data.action;
+    var payload = data.payload || {};
+    var result = {};
 
-    <div class="col-md-3 col-6">
-      <div class="card card-custom bg-danger text-white p-3 shadow-sm h-100">
-        <small class="opacity-75">Pengeluaran Bulan Ini</small>
-        <h4 id="valPengeluaranBulanIni" class="mb-0 fw-bold">Rp 0</h4>
-      </div>
-    </div>
+    if (action === 'getDashboardData') {
+      result = getDashboardData(payload.bulanTahun);
+    } else if (action === 'simpanTransaksi') {
+      result = simpanTransaksi(payload);
+    } else if (action === 'simpanLimitHarian') {
+      result = simpanLimitHarian(payload.limitBaru);
+    } else if (action === 'hapusTransaksi') {
+      result = hapusTransaksi(payload.rowIndex);
+    } else if (action === 'getDaftarBulan') {
+      result = getDaftarBulan();
+    } else {
+      result = { success: false, message: 'Aksi tidak dikenal.' };
+    }
 
-    <div class="col-md-3 col-6">
-      <div class="card card-custom bg-warning text-dark p-3 shadow-sm h-100">
-        <small class="opacity-75">Pengeluaran Hari Ini</small>
-        <h4 id="valPengeluaranHariIni" class="mb-0 fw-bold">Rp 0</h4>
-        <small id="valLimitInfo" class="text-muted mt-1" style="font-size:.75rem;">
-          Limit: Rp 0
-        </small>
-      </div>
-    </div>
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
 
-  </div>
+function getSheetTransaksi() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Transaksi');
+  if (!sheet) {
+    sheet = ss.insertSheet('Transaksi');
+    sheet.appendRow(['ID', 'Tanggal', 'Bulan_Tahun', 'Tipe', 'Keterangan', 'Jumlah']);
+  }
+  return sheet;
+}
 
-  <!-- FORM TRANSAKSI -->
-  <div class="card card-custom shadow-sm mb-4">
-    <div class="card-body">
+function getSheetConfig() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Config');
+  if (!sheet) {
+    sheet = ss.insertSheet('Config');
+    sheet.appendRow(['Key', 'Value']);
+    sheet.appendRow(['LimitHarian', '150000']);
+  }
+  return sheet;
+}
 
-      <h5 class="card-title mb-3 fw-bold">
-        Tambah Transaksi / Belanja
-      </h5>
+function simpanLimitHarian(limitBaru) {
+  var sheet = getSheetConfig();
+  sheet.getRange('B2').setValue(limitBaru);
+  return { success: true, message: 'Limit harian berhasil diperbarui!' };
+}
 
-      <form id="formTransaksi">
+function getLimitHarian() {
+  var sheet = getSheetConfig();
+  return Number(sheet.getRange('B2').getValue()) || 150000;
+}
 
-        <div class="row g-3 mb-3">
+function getDaftarBulan() {
+  var sheet = getSheetTransaksi();
+  var data = sheet.getDataRange().getValues();
+  var bulanSet = new Set();
+  
+  // Ambil bulan dari data transaksi
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][2]) {
+      bulanSet.add(data[i][2].toString());
+    }
+  }
+  
+  // Pastikan bulan saat ini selalu ada di pilihan
+  var today = new Date();
+  var currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+  bulanSet.add(currentMonth);
 
-          <div class="col-md-6">
-            <label class="form-label">Tanggal Transaksi</label>
-            <input
-              type="date"
-              id="tanggal"
-              class="form-control"
-              required
-            >
-          </div>
+  var listBulan = Array.from(bulanSet).sort().reverse();
+  return { success: true, listBulan: listBulan, currentMonth: currentMonth };
+}
 
-          <div class="col-md-6">
-            <label class="form-label">Tipe Transaksi</label>
-            <select id="tipe" class="form-select" required>
-              <option value="Pengeluaran">Pengeluaran</option>
-              <option value="Pemasukan">Pemasukan</option>
-            </select>
-          </div>
+function getDashboardData(targetBulan) {
+  var sheet = getSheetTransaksi();
+  var data = sheet.getDataRange().getValues();
+  
+  var today = new Date();
+  var todayStr = today.toISOString().split('T')[0];
+  var currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+  
+  var selectedMonth = targetBulan || currentMonth;
 
-        </div>
+  var saldoTotal = 0;
+  var totalPemasukanBulanIni = 0;
+  var totalPengeluaranBulanIni = 0;
+  var totalPengeluaranHariIni = 0;
+  var riwayatFiltered = [];
 
-        <label class="form-label fw-bold">
-          Daftar Barang / Keterangan Belanja
-        </label>
+  // Rekap Data Pemasukan/Pengeluaran Bulanan untuk Grafik (6 Bulan Terakhir)
+  var rekapBulananMap = {};
 
-        <div id="containerItem">
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var tgl = row[1];
+    var blnThn = row[2] ? row[2].toString() : '';
+    var tipe = row[3];
+    var ket = row[4];
+    var jml = Number(row[5]) || 0;
 
-          <div class="item-row row g-2 align-items-center">
+    // Hitung Akumulasi Saldo Total Semua Waktu
+    if (tipe === 'Pemasukan') saldoTotal += jml;
+    if (tipe === 'Pengeluaran') saldoTotal -= jml;
 
-            <div class="col-8 col-md-7">
-              <input
-                type="text"
-                class="form-control input-keterangan"
-                placeholder="Ketik deskripsi / nama barang"
-                maxlength="250"
-                required
-              >
-            </div>
+    // Rekap Per Bulan untuk Grafik
+    if (blnThn) {
+      if (!rekapBulananMap[blnThn]) {
+        rekapBulananMap[blnThn] = { pemasukan: 0, pengeluaran: 0 };
+      }
+      if (tipe === 'Pemasukan') rekapBulananMap[blnThn].pemasukan += jml;
+      if (tipe === 'Pengeluaran') rekapBulananMap[blnThn].pengeluaran += jml;
+    }
 
-            <div class="col-4 col-md-4">
-              <input
-                type="number"
-                class="form-control input-jumlah"
-                placeholder="Jumlah (Rp)"
-                min="1"
-                step="1"
-                required
-              >
-            </div>
+    // Filter Khusus Bulan yang Dipilih
+    if (blnThn === selectedMonth) {
+      if (tipe === 'Pemasukan') totalPemasukanBulanIni += jml;
+      if (tipe === 'Pengeluaran') totalPengeluaranBulanIni += jml;
 
-            <div class="col-12 col-md-1 text-center">
-              <button
-                type="button"
-                class="btn btn-outline-danger btn-sm w-100"
-                onclick="hapusRow(this)"
-              >
-                ✕
-              </button>
-            </div>
+      riwayatFiltered.push({
+        rowIndex: i + 1,
+        tanggal: tgl,
+        tipe: tipe,
+        keterangan: ket,
+        jumlah: jml
+      });
+    }
 
-          </div>
+    // Filter Pengeluaran Hari Ini
+    if (tgl === todayStr && tipe === 'Pengeluaran') {
+      totalPengeluaranHariIni += jml;
+    }
+  }
 
-        </div>
+  return {
+    success: true,
+    selectedMonth: selectedMonth,
+    saldo: saldoTotal,
+    totalPemasukan: totalPemasukanBulanIni,
+    pengeluaranBulanIni: totalPengeluaranBulanIni,
+    pengeluaranHariIni: totalPengeluaranHariIni,
+    limitHarian: getLimitHarian(),
+    riwayat: riwayatFiltered.reverse(),
+    rekapBulanan: rekapBulananMap
+  };
+}
 
-        <div class="d-flex justify-content-between align-items-center mt-3 gap-2">
+function simpanTransaksi(payload) {
+  var sheet = getSheetTransaksi();
+  var items = payload.items || [];
+  var tglStr = payload.tanggal; // Format: YYYY-MM-DD
+  var blnThn = tglStr.substring(0, 7); // Format: YYYY-MM
 
-          <button
-            type="button"
-            class="btn btn-outline-secondary btn-sm"
-            onclick="tambahRow()"
-          >
-            + Tambah Item Belanja
-          </button>
-
-          <button
-            type="submit"
-            id="btnSubmit"
-            class="btn btn-primary px-4"
-          >
-            Simpan Invoice
-          </button>
-
-        </div>
-
-      </form>
-    </div>
-  </div>
-
-  <!-- RIWAYAT -->
-  <div class="card card-custom shadow-sm">
-
-    <div class="card-body">
-
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="card-title mb-0 fw-bold">
-          Riwayat Transaksi Terakhir
-        </h5>
-
-        <button
-          type="button"
-          class="btn btn-sm btn-outline-primary"
-          onclick="loadData()"
-        >
-          Muat Ulang
-        </button>
-      </div>
-
-      <div class="table-responsive">
-
-        <table class="table table-hover align-middle">
-
-          <thead class="table-light">
-            <tr>
-              <th>Tanggal</th>
-              <th>Tipe</th>
-              <th>Keterangan / Deskripsi</th>
-              <th>Jumlah</th>
-              <th class="text-center">Aksi</th>
-            </tr>
-          </thead>
-
-          <tbody id="tabelRiwayat">
-            <tr>
-              <td colspan="5" class="text-center text-muted">
-                Memuat data...
-              </td>
-            </tr>
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL LIMIT -->
-<div class="modal fade" id="modalLimit" tabindex="-1" aria-hidden="true">
-
-  <div class="modal-dialog modal-dialog-centered">
-
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold">
-          Atur Limit Dana Harian
-        </h5>
-
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Tutup"
-        ></button>
-      </div>
-
-      <div class="modal-body">
-
-        <label class="form-label">
-          Masukkan Limit Pengeluaran Per Hari (Rp)
-        </label>
-
-        <input
-          type="number"
-          id="inputLimitBaru"
-          class="form-control"
-          placeholder="Contoh: 150000"
-          min="0"
-          step="1"
-        >
-
-      </div>
-
-      <div class="modal-footer">
-
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
-          Batal
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-primary"
-          onclick="simpanLimit()"
-        >
-          Simpan Limit
-        </button>
-
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-  /*
-   * Frontend Cloudflare Pages
-   * -------------------------
-   * Semua request API diarahkan ke /api.
-   * Tidak menggunakan google.script.run.
-   */
-  const API_URL = "/api";
-
-  document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("tanggal").valueAsDate = new Date();
-    loadData();
+  items.forEach(function(item) {
+    var id = 'TX-' + new Date().getTime() + '-' + Math.floor(Math.random() * 1000);
+    sheet.appendRow([id, tglStr, blnThn, payload.tipe, item.keterangan, Number(item.jumlah)]);
   });
 
-  function formatRupiah(nominal) {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0
-    }).format(Number(nominal) || 0);
-  }
-
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  /*
-   * API CLIENT
-   * Tidak ada google.script.run.
-   */
-  async function apiRequest(action, payload = {}) {
-
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: action,
-        payload: payload
-      })
-    });
-
-    const text = await response.text();
-
-    let result;
-
-    try {
-      result = JSON.parse(text);
-    } catch (error) {
-      console.error("Response server:", text);
-      throw new Error(
-        "Server mengembalikan response yang bukan JSON."
-      );
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        result.message || ("HTTP " + response.status)
-      );
-    }
-
-    return result;
-  }
-
-  function tambahRow() {
-
-    const container =
-      document.getElementById("containerItem");
-
-    const div = document.createElement("div");
-
-    div.className =
-      "item-row row g-2 align-items-center";
-
-    div.innerHTML = `
-      <div class="col-8 col-md-7">
-        <input
-          type="text"
-          class="form-control input-keterangan"
-          placeholder="Ketik deskripsi / nama barang"
-          maxlength="250"
-          required
-        >
-      </div>
-
-      <div class="col-4 col-md-4">
-        <input
-          type="number"
-          class="form-control input-jumlah"
-          placeholder="Jumlah (Rp)"
-          min="1"
-          step="1"
-          required
-        >
-      </div>
-
-      <div class="col-12 col-md-1 text-center">
-        <button
-          type="button"
-          class="btn btn-outline-danger btn-sm w-100"
-          onclick="hapusRow(this)"
-        >
-          ✕
-        </button>
-      </div>
-    `;
-
-    container.appendChild(div);
-  }
-
-  function hapusRow(btn) {
-
-    const container =
-      document.getElementById("containerItem");
-
-    if (container.children.length > 1) {
-      btn.closest(".item-row").remove();
-    } else {
-      alert("Minimal harus terdapat 1 item belanja.");
-    }
-  }
-
-  async function loadData() {
-
-    const tbody =
-      document.getElementById("tabelRiwayat");
-
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-center text-muted">
-          Memuat data...
-        </td>
-      </tr>
-    `;
-
-    try {
-
-      const res =
-        await apiRequest("getDashboardData");
-
-      if (!res.success) {
-        throw new Error(
-          res.message || "Gagal mengambil data dashboard."
-        );
-      }
-
-      document.getElementById("valSaldo").innerText =
-        formatRupiah(res.saldo);
-
-      document.getElementById("valPemasukan").innerText =
-        formatRupiah(res.totalPemasukan);
-
-      document.getElementById("valPengeluaranBulanIni").innerText =
-        formatRupiah(res.pengeluaranBulanIni);
-
-      document.getElementById("valPengeluaranHariIni").innerText =
-        formatRupiah(res.pengeluaranHariIni);
-
-      document.getElementById("valLimitInfo").innerText =
-        "Limit: " + formatRupiah(res.limitHarian);
-
-      document.getElementById("inputLimitBaru").value =
-        res.limitHarian || 0;
-
-      // Alert limit
-      const alertBox =
-        document.getElementById("alertLimit");
-
-      const alertTitle =
-        document.getElementById("alertTitle");
-
-      const alertBody =
-        document.getElementById("alertBody");
-
-      if (res.limitHarian > 0 &&
-          res.pengeluaranHariIni >= res.limitHarian) {
-
-        alertBox.className =
-          "alert alert-danger shadow-sm d-block";
-
-        alertTitle.innerText =
-          "⚠️ Limit Harian Melebihi Batas!";
-
-        alertBody.innerText =
-          "Pengeluaran hari ini (" +
-          formatRupiah(res.pengeluaranHariIni) +
-          ") telah melampaui limit (" +
-          formatRupiah(res.limitHarian) +
-          ").";
-
-      } else if (
-        res.limitHarian > 0 &&
-        res.pengeluaranHariIni >=
-        (res.limitHarian * 0.8)
-      ) {
-
-        alertBox.className =
-          "alert alert-warning shadow-sm d-block";
-
-        alertTitle.innerText =
-          "⚡ Mendekati Limit Harian!";
-
-        alertBody.innerText =
-          "Pengeluaran hari ini (" +
-          formatRupiah(res.pengeluaranHariIni) +
-          ") sudah mencapai 80% dari limit (" +
-          formatRupiah(res.limitHarian) +
-          ").";
-
-      } else {
-
-        alertBox.className =
-          "alert d-none";
-      }
-
-      // Riwayat
-      tbody.innerHTML = "";
-
-      if (!res.riwayat ||
-          res.riwayat.length === 0) {
-
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5"
-                class="text-center text-muted">
-              Belum ada transaksi.
-            </td>
-          </tr>
-        `;
-
-        return;
-      }
-
-      res.riwayat.forEach(function (item) {
-
-        const badgeClass =
-          item.tipe === "Pemasukan"
-            ? "bg-success"
-            : "bg-danger";
-
-        const row =
-          document.createElement("tr");
-
-        row.innerHTML = `
-          <td>${escapeHtml(item.tanggal)}</td>
-
-          <td>
-            <span class="badge ${badgeClass}">
-              ${escapeHtml(item.tipe)}
-            </span>
-          </td>
-
-          <td>
-            ${escapeHtml(item.keterangan)}
-          </td>
-
-          <td>
-            ${formatRupiah(item.jumlah)}
-          </td>
-
-          <td class="text-center">
-            <button
-              class="btn btn-sm btn-outline-danger"
-              onclick="hapusData(${Number(item.rowIndex)})"
-            >
-              Hapus
-            </button>
-          </td>
-        `;
-
-        tbody.appendChild(row);
-      });
-
-    } catch (error) {
-
-      console.error(error);
-
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5"
-              class="text-center text-danger">
-            Gagal memuat data: ${escapeHtml(error.message)}
-          </td>
-        </tr>
-      `;
-    }
-  }
-
-  document
-    .getElementById("formTransaksi")
-    .addEventListener("submit", async function (e) {
-
-      e.preventDefault();
-
-      const btn =
-        document.getElementById("btnSubmit");
-
-      btn.disabled = true;
-      btn.innerText = "Menyimpan...";
-
-      try {
-
-        const items = [];
-
-        document
-          .querySelectorAll(".item-row")
-          .forEach(function (row) {
-
-            const keterangan =
-              row.querySelector(".input-keterangan")
-                .value
-                .trim();
-
-            const jumlah =
-              Number(
-                row.querySelector(".input-jumlah").value
-              );
-
-            items.push({
-              keterangan: keterangan,
-              jumlah: jumlah
-            });
-          });
-
-        const payload = {
-          tanggal:
-            document.getElementById("tanggal").value,
-
-          tipe:
-            document.getElementById("tipe").value,
-
-          items: items
-        };
-
-        const res =
-          await apiRequest(
-            "simpanTransaksi",
-            payload
-          );
-
-        if (!res.success) {
-          throw new Error(
-            res.message || "Transaksi gagal disimpan."
-          );
-        }
-
-        alert(res.message);
-
-        resetItemForm();
-
-        await loadData();
-
-      } catch (error) {
-
-        console.error(error);
-
-        alert(
-          "Terjadi kesalahan: " +
-          error.message
-        );
-
-      } finally {
-
-        btn.disabled = false;
-        btn.innerText = "Simpan Invoice";
-      }
-    });
-
-  function resetItemForm() {
-
-    document.getElementById(
-      "containerItem"
-    ).innerHTML = `
-      <div class="item-row row g-2 align-items-center">
-
-        <div class="col-8 col-md-7">
-          <input
-            type="text"
-            class="form-control input-keterangan"
-            placeholder="Ketik deskripsi / nama barang"
-            maxlength="250"
-            required
-          >
-        </div>
-
-        <div class="col-4 col-md-4">
-          <input
-            type="number"
-            class="form-control input-jumlah"
-            placeholder="Jumlah (Rp)"
-            min="1"
-            step="1"
-            required
-          >
-        </div>
-
-        <div class="col-12 col-md-1 text-center">
-          <button
-            type="button"
-            class="btn btn-outline-danger btn-sm w-100"
-            onclick="hapusRow(this)"
-          >
-            ✕
-          </button>
-        </div>
-
-      </div>
-    `;
-  }
-
-  async function simpanLimit() {
-
-    const input =
-      document.getElementById("inputLimitBaru");
-
-    const limitBaru =
-      Number(input.value);
-
-    if (!Number.isFinite(limitBaru) ||
-        limitBaru < 0) {
-
-      alert("Limit harus berupa angka 0 atau lebih.");
-      return;
-    }
-
-    try {
-
-      const res =
-        await apiRequest(
-          "simpanLimitHarian",
-          {
-            limitBaru: limitBaru
-          }
-        );
-
-      if (!res.success) {
-        throw new Error(
-          res.message || "Gagal menyimpan limit."
-        );
-      }
-
-      alert(res.message);
-
-      const modalEl =
-        document.getElementById("modalLimit");
-
-      const modalObj =
-        bootstrap.Modal.getInstance(modalEl) ||
-        new bootstrap.Modal(modalEl);
-
-      modalObj.hide();
-
-      await loadData();
-
-    } catch (error) {
-
-      alert(
-        "Gagal menyimpan limit: " +
-        error.message
-      );
-    }
-  }
-
-  async function hapusData(rowIndex) {
-
-    if (!confirm(
-      "Yakin ingin menghapus transaksi ini?"
-    )) {
-      return;
-    }
-
-    try {
-
-      const res =
-        await apiRequest(
-          "hapusTransaksi",
-          {
-            rowIndex: Number(rowIndex)
-          }
-        );
-
-      if (!res.success) {
-        throw new Error(
-          res.message || "Gagal menghapus transaksi."
-        );
-      }
-
-      alert(res.message);
-
-      await loadData();
-
-    } catch (error) {
-
-      alert(
-        "Gagal menghapus transaksi: " +
-        error.message
-      );
-    }
-  }
-</script>
-
-</body>
-</html>
+  return { success: true, message: 'Transaksi berhasil disimpan!' };
+}
+
+function hapusTransaksi(rowIndex) {
+  var sheet = getSheetTransaksi();
+  sheet.deleteRow(rowIndex);
+  return { success: true, message: 'Transaksi berhasil dihapus!' };
+}
