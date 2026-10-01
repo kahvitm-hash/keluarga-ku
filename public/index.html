@@ -69,15 +69,6 @@
     }
 
 
-    .loading {
-
-      opacity: .65;
-
-      pointer-events: none;
-
-    }
-
-
     .progress {
 
       height: 10px;
@@ -96,7 +87,7 @@
 
     .month-select {
 
-      max-width: 250px;
+      max-width: 230px;
 
     }
 
@@ -108,13 +99,6 @@
     }
 
 
-    .budget-card {
-
-      border-left: 5px solid #0d6efd;
-
-    }
-
-
     .text-small {
 
       font-size: .82rem;
@@ -122,9 +106,16 @@
     }
 
 
-    .empty-state {
+    .saldo-awal-card {
 
-      padding: 30px 10px;
+      border-left: 5px solid #6c757d;
+
+    }
+
+
+    .saldo-akhir-card {
+
+      border-left: 5px solid #0d6efd;
 
     }
 
@@ -147,14 +138,12 @@
        ===================================================== -->
 
   <div
-    class="
-      d-flex
-      justify-content-between
-      align-items-center
-      flex-wrap
-      gap-2
-      mb-4
-    "
+    class="d-flex
+           justify-content-between
+           align-items-center
+           flex-wrap
+           gap-2
+           mb-4"
   >
 
     <div>
@@ -193,24 +182,17 @@
        ===================================================== -->
 
   <div
-    class="
-      card
-      card-custom
-      shadow-sm
-      mb-4
-    "
+    class="card card-custom shadow-sm mb-4"
   >
 
     <div class="card-body">
 
       <div
-        class="
-          d-flex
-          justify-content-between
-          align-items-center
-          flex-wrap
-          gap-3
-        "
+        class="d-flex
+               justify-content-between
+               align-items-center
+               flex-wrap
+               gap-3"
       >
 
         <div>
@@ -223,8 +205,7 @@
 
           <div class="text-muted text-small">
 
-            Pilih bulan untuk melihat transaksi dan
-            kontrol anggaran.
+            Saldo awal otomatis berasal dari saldo bulan sebelumnya
 
           </div>
 
@@ -234,15 +215,7 @@
         <select
           id="selectBulan"
           class="form-select month-select"
-        >
-
-          <option value="">
-
-            Memuat bulan...
-
-          </option>
-
-        </select>
+        ></select>
 
       </div>
 
@@ -252,26 +225,63 @@
 
 
   <!-- =====================================================
-       DASHBOARD
+       SALDO BERJALAN
        ===================================================== -->
 
   <div class="row g-3 mb-4">
 
 
-    <!-- PEMASUKAN -->
+    <!-- SALDO AWAL -->
 
-    <div class="col-md-4 col-6">
+    <div class="col-md-4">
 
       <div
-        class="
-          card
-          card-custom
-          bg-success
-          text-white
-          p-3
-          shadow-sm
-          summary-card
-        "
+        class="card
+               card-custom
+               shadow-sm
+               p-3
+               summary-card
+               saldo-awal-card"
+      >
+
+        <small class="text-muted">
+
+          Saldo Awal Bulan
+
+        </small>
+
+        <h4
+          id="valSaldoAwal"
+          class="mb-0 fw-bold"
+        >
+
+          Rp 0
+
+        </h4>
+
+        <small class="text-muted">
+
+          Sisa dari bulan sebelumnya
+
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- PEMASUKAN -->
+
+    <div class="col-md-4">
+
+      <div
+        class="card
+               card-custom
+               bg-success
+               text-white
+               p-3
+               shadow-sm
+               summary-card"
       >
 
         <small class="opacity-75">
@@ -296,18 +306,16 @@
 
     <!-- PENGELUARAN -->
 
-    <div class="col-md-4 col-6">
+    <div class="col-md-4">
 
       <div
-        class="
-          card
-          card-custom
-          bg-danger
-          text-white
-          p-3
-          shadow-sm
-          summary-card
-        "
+        class="card
+               card-custom
+               bg-danger
+               text-white
+               p-3
+               shadow-sm
+               summary-card"
       >
 
         <small class="opacity-75">
@@ -329,37 +337,65 @@
 
     </div>
 
+  </div>
 
-    <!-- SALDO -->
 
-    <div class="col-md-4 col-12">
+  <!-- =====================================================
+       SALDO AKHIR
+       ===================================================== -->
 
-      <div
-        class="
-          card
-          card-custom
-          bg-primary
-          text-white
-          p-3
-          shadow-sm
-          summary-card
-        "
-      >
+  <div
+    class="card
+           card-custom
+           shadow-sm
+           mb-4
+           saldo-akhir-card"
+  >
 
-        <small class="opacity-75">
+    <div class="card-body">
 
-          Saldo Bulan Ini
+      <div class="row align-items-center">
 
-        </small>
+        <div class="col-md-8">
 
-        <h4
-          id="valSaldo"
-          class="mb-0 fw-bold"
+          <div class="text-muted">
+
+            Saldo Akhir Bulan
+
+          </div>
+
+          <div
+            id="valSaldo"
+            class="display-6 fw-bold"
+          >
+
+            Rp 0
+
+          </div>
+
+          <div class="text-muted text-small mt-1">
+
+            Saldo ini otomatis menjadi saldo awal bulan berikutnya.
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="col-md-4 text-md-end mt-3 mt-md-0"
         >
 
-          Rp 0
+          <span
+            id="badgeSaldo"
+            class="badge text-bg-primary"
+          >
 
-        </h4>
+            Saldo Berjalan
+
+          </span>
+
+        </div>
 
       </div>
 
@@ -373,27 +409,22 @@
        ===================================================== -->
 
   <div
-    class="
-      card
-      card-custom
-      shadow-sm
-      mb-4
-      budget-card
-    "
+    class="card
+           card-custom
+           shadow-sm
+           mb-4"
   >
 
     <div class="card-body">
 
 
       <div
-        class="
-          d-flex
-          justify-content-between
-          align-items-center
-          flex-wrap
-          gap-2
-          mb-3
-        "
+        class="d-flex
+               justify-content-between
+               align-items-center
+               flex-wrap
+               gap-2
+               mb-3"
       >
 
         <div>
@@ -436,17 +467,15 @@
         <div class="col-md-4">
 
           <div
-            class="
-              border
-              rounded
-              p-3
-              h-100
-            "
+            class="border
+                   rounded
+                   p-3
+                   h-100"
           >
 
             <div class="text-muted text-small">
 
-              Anggaran Bulanan
+              Anggaran Bulan Ini
 
             </div>
 
@@ -469,12 +498,10 @@
         <div class="col-md-4">
 
           <div
-            class="
-              border
-              rounded
-              p-3
-              h-100
-            "
+            class="border
+                   rounded
+                   p-3
+                   h-100"
           >
 
             <div class="text-muted text-small">
@@ -485,11 +512,9 @@
 
             <div
               id="valPengeluaranKontrol"
-              class="
-                fs-4
-                fw-bold
-                text-danger
-              "
+              class="fs-4
+                     fw-bold
+                     text-danger"
             >
 
               Rp 0
@@ -506,12 +531,10 @@
         <div class="col-md-4">
 
           <div
-            class="
-              border
-              rounded
-              p-3
-              h-100
-            "
+            class="border
+                   rounded
+                   p-3
+                   h-100"
           >
 
             <div class="text-muted text-small">
@@ -541,12 +564,10 @@
       <div class="mt-4">
 
         <div
-          class="
-            d-flex
-            justify-content-between
-            text-small
-            mb-1
-          "
+          class="d-flex
+                 justify-content-between
+                 text-small
+                 mb-1"
         >
 
           <span>
@@ -555,9 +576,7 @@
 
           </span>
 
-          <span
-            id="persentaseAnggaran"
-          >
+          <span id="persentaseAnggaran">
 
             0%
 
@@ -584,12 +603,7 @@
 
       <div
         id="alertAnggaran"
-        class="
-          alert
-          d-none
-          mt-3
-          mb-0
-        "
+        class="alert d-none mt-3 mb-0"
       ></div>
 
 
@@ -603,12 +617,10 @@
        ===================================================== -->
 
   <div
-    class="
-      card
-      card-custom
-      shadow-sm
-      mb-4
-    "
+    class="card
+           card-custom
+           shadow-sm
+           mb-4"
   >
 
     <div class="card-body">
@@ -683,10 +695,7 @@
         <!-- ITEM -->
 
         <label
-          class="
-            form-label
-            fw-bold
-          "
+          class="form-label fw-bold"
         >
 
           Keterangan Transaksi
@@ -698,12 +707,10 @@
 
 
           <div
-            class="
-              item-row
-              row
-              g-2
-              align-items-center
-            "
+            class="item-row
+                   row
+                   g-2
+                   align-items-center"
           >
 
             <div
@@ -712,10 +719,7 @@
 
               <input
                 type="text"
-                class="
-                  form-control
-                  input-keterangan
-                "
+                class="form-control input-keterangan"
                 placeholder="Contoh: Belanja"
                 maxlength="250"
                 required
@@ -730,10 +734,7 @@
 
               <input
                 type="number"
-                class="
-                  form-control
-                  input-jumlah
-                "
+                class="form-control input-jumlah"
                 placeholder="Jumlah (Rp)"
                 min="1"
                 step="1"
@@ -744,21 +745,12 @@
 
 
             <div
-              class="
-                col-12
-                col-md-1
-                text-center
-              "
+              class="col-12 col-md-1 text-center"
             >
 
               <button
                 type="button"
-                class="
-                  btn
-                  btn-outline-danger
-                  btn-sm
-                  w-100
-                "
+                class="btn btn-outline-danger btn-sm w-100"
                 onclick="hapusRow(this)"
               >
 
@@ -776,22 +768,16 @@
         <!-- BUTTON -->
 
         <div
-          class="
-            d-flex
-            justify-content-between
-            align-items-center
-            mt-3
-            gap-2
-          "
+          class="d-flex
+                 justify-content-between
+                 align-items-center
+                 mt-3
+                 gap-2"
         >
 
           <button
             type="button"
-            class="
-              btn
-              btn-outline-secondary
-              btn-sm
-            "
+            class="btn btn-outline-secondary btn-sm"
             onclick="tambahRow()"
           >
 
@@ -803,11 +789,7 @@
           <button
             type="submit"
             id="btnSubmit"
-            class="
-              btn
-              btn-primary
-              px-4
-            "
+            class="btn btn-primary px-4"
           >
 
             Simpan Transaksi
@@ -829,35 +811,29 @@
        ===================================================== -->
 
   <div
-    class="
-      card
-      card-custom
-      shadow-sm
-    "
+    class="card
+           card-custom
+           shadow-sm"
   >
 
     <div class="card-body">
 
 
       <div
-        class="
-          d-flex
-          justify-content-between
-          align-items-center
-          mb-3
-          flex-wrap
-          gap-2
-        "
+        class="d-flex
+               justify-content-between
+               align-items-center
+               mb-3
+               flex-wrap
+               gap-2"
       >
 
         <div>
 
           <h5
-            class="
-              card-title
-              mb-0
-              fw-bold
-            "
+            class="card-title
+                   mb-0
+                   fw-bold"
           >
 
             Riwayat Transaksi
@@ -866,8 +842,7 @@
 
           <small class="text-muted">
 
-            Menampilkan transaksi sesuai
-            bulan yang dipilih.
+            Menampilkan transaksi sesuai bulan yang dipilih
 
           </small>
 
@@ -876,11 +851,7 @@
 
         <button
           type="button"
-          class="
-            btn
-            btn-sm
-            btn-outline-primary
-          "
+          class="btn btn-sm btn-outline-primary"
           onclick="loadDashboard()"
         >
 
@@ -893,12 +864,11 @@
 
       <div class="table-responsive">
 
+
         <table
-          class="
-            table
-            table-hover
-            align-middle
-          "
+          class="table
+                 table-hover
+                 align-middle"
         >
 
           <thead class="table-light">
@@ -913,9 +883,7 @@
 
               <th>Jumlah</th>
 
-              <th
-                class="text-center"
-              >
+              <th class="text-center">
 
                 Aksi
 
@@ -932,10 +900,7 @@
 
               <td
                 colspan="5"
-                class="
-                  text-center
-                  text-muted
-                "
+                class="text-center text-muted"
               >
 
                 Memuat data...
@@ -948,8 +913,8 @@
 
         </table>
 
-      </div>
 
+      </div>
 
     </div>
 
@@ -964,20 +929,15 @@
      ======================================================= -->
 
 <div
-  class="
-    modal
-    fade
-  "
+  class="modal fade"
   id="modalPengaturan"
   tabindex="-1"
   aria-hidden="true"
 >
 
   <div
-    class="
-      modal-dialog
-      modal-dialog-centered
-    "
+    class="modal-dialog
+           modal-dialog-centered"
   >
 
     <div class="modal-content">
@@ -986,13 +946,10 @@
       <div class="modal-header">
 
         <h5
-          class="
-            modal-title
-            fw-bold
-          "
+          class="modal-title fw-bold"
         >
 
-          ⚙️ Pengaturan Anggaran
+          ⚙️ Pengaturan
 
         </h5>
 
@@ -1009,36 +966,8 @@
       <div class="modal-body">
 
 
-        <div
-          class="
-            alert
-            alert-light
-            border
-            small
-          "
-        >
-
-          Anggaran disimpan khusus untuk
-          bulan yang sedang dipilih.
-
-          <br>
-
-          <strong
-            id="labelBulanPengaturan"
-          >
-
-            -
-
-          </strong>
-
-        </div>
-
-
         <label
-          class="
-            form-label
-            fw-semibold
-          "
+          class="form-label fw-semibold"
         >
 
           Anggaran Pengeluaran Bulanan
@@ -1058,17 +987,8 @@
 
         <div class="form-text mt-2">
 
-          Contoh:
-
-          September 2026 =
-          Rp150.000
-
-          dan
-
-          Oktober 2026 =
-          Rp200.000.
-
-          Keduanya disimpan terpisah.
+          Anggaran digunakan untuk mengontrol
+          pengeluaran pada bulan yang dipilih.
 
         </div>
 
@@ -1081,10 +1001,7 @@
 
         <button
           type="button"
-          class="
-            btn
-            btn-secondary
-          "
+          class="btn btn-secondary"
           data-bs-dismiss="modal"
         >
 
@@ -1096,10 +1013,7 @@
         <button
           type="button"
           id="btnSimpanPengaturan"
-          class="
-            btn
-            btn-primary
-          "
+          class="btn btn-primary"
           onclick="simpanAnggaran()"
         >
 
@@ -1118,13 +1032,12 @@
 
 
 <script
-  src="
-    https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js
-  "
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
 ></script>
 
 
 <script>
+
 
 /* ==========================================================
    API
@@ -1139,9 +1052,6 @@ const API_URL = "/api";
 
 let selectedMonth = "";
 
-let initialized =
-  false;
-
 
 /* ==========================================================
    INITIAL
@@ -1153,73 +1063,10 @@ document.addEventListener(
 
     setTanggalHariIni();
 
-    setupEvents();
-
     await loadDaftarBulan();
 
   }
 );
-
-
-/* ==========================================================
-   SETUP EVENTS
-   ========================================================== */
-
-function setupEvents() {
-
-  const select =
-    document.getElementById(
-      "selectBulan"
-    );
-
-
-  /*
-   * Event hanya dipasang SATU KALI.
-   *
-   * Versi lama memasang event listener
-   * setiap kali loadDaftarBulan()
-   * dipanggil.
-   */
-
-  select.addEventListener(
-    "change",
-    async function () {
-
-      selectedMonth =
-        this.value;
-
-      updateLabelBulan();
-
-      await loadDashboard();
-
-    }
-  );
-
-
-  /*
-   * Update label bulan pada modal.
-   */
-
-  const modal =
-    document.getElementById(
-      "modalPengaturan"
-    );
-
-
-  modal.addEventListener(
-    "show.bs.modal",
-    function () {
-
-      updateLabelBulan();
-
-    }
-  );
-
-
-  initialized =
-    true;
-
-}
 
 
 /* ==========================================================
@@ -1245,21 +1092,19 @@ function setTanggalHariIni() {
   const month =
     String(
       now.getMonth() + 1
-    )
-      .padStart(
-        2,
-        "0"
-      );
+    ).padStart(
+      2,
+      "0"
+    );
 
 
   const day =
     String(
       now.getDate()
-    )
-      .padStart(
-        2,
-        "0"
-      );
+    ).padStart(
+      2,
+      "0"
+    );
 
 
   input.value =
@@ -1277,14 +1122,26 @@ function formatRupiah(
 ) {
 
   return new Intl.NumberFormat(
+
     "id-ID",
+
     {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0
+
+      style:
+        "currency",
+
+      currency:
+        "IDR",
+
+      maximumFractionDigits:
+        0
+
     }
+
   ).format(
+
     Number(nominal) || 0
+
   );
 
 }
@@ -1341,7 +1198,9 @@ async function apiRequest(
 
   const response =
     await fetch(
+
       API_URL,
+
       {
 
         method:
@@ -1366,6 +1225,7 @@ async function apiRequest(
           })
 
       }
+
     );
 
 
@@ -1403,8 +1263,10 @@ async function apiRequest(
   ) {
 
     throw new Error(
+
       result.message ||
       `HTTP ${response.status}`
+
     );
 
   }
@@ -1419,9 +1281,7 @@ async function apiRequest(
    DAFTAR BULAN
    ========================================================== */
 
-async function loadDaftarBulan(
-  preferredMonth = ""
-) {
+async function loadDaftarBulan() {
 
   try {
 
@@ -1436,8 +1296,10 @@ async function loadDaftarBulan(
     ) {
 
       throw new Error(
+
         res.message ||
         "Gagal mengambil daftar bulan."
+
       );
 
     }
@@ -1449,137 +1311,80 @@ async function loadDaftarBulan(
       );
 
 
-    const list =
-      Array.isArray(
-        res.listBulan
-      )
-        ? res.listBulan
-        : [];
-
-
-    /*
-     * Tentukan bulan yang dipilih.
-     *
-     * Prioritas:
-     * 1. preferredMonth
-     * 2. selectedMonth lama
-     * 3. bulan sekarang
-     * 4. bulan pertama
-     */
-
-    let target =
-      preferredMonth ||
-      selectedMonth ||
-      res.currentMonth ||
+    select.innerHTML =
       "";
 
 
-    if (
-      !list.includes(target)
-    ) {
+    const list =
+      res.listBulan || [];
 
-      if (
-        list.includes(
-          res.currentMonth
-        )
+
+    list.forEach(
+      function (
+        bulan
       ) {
 
-        target =
-          res.currentMonth;
-
-      } else if (
-        list.length > 0
-      ) {
-
-        target =
-          list[0];
-
-      }
-
-    }
-
-
-    /*
-     * Render dropdown.
-     */
-
-    select.innerHTML = "";
-
-
-    if (
-      list.length === 0
-    ) {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        target;
-
-
-      option.textContent =
-        formatBulan(
-          target
-        );
-
-
-      select.appendChild(
-        option
-      );
-
-    } else {
-
-      list.forEach(
-        function(bulan) {
-
-          const option =
-            document.createElement(
-              "option"
-            );
-
-
-          option.value =
-            bulan;
-
-
-          option.textContent =
-            formatBulan(
-              bulan
-            );
-
-
-          if (
-            bulan === target
-          ) {
-
-            option.selected =
-              true;
-
-          }
-
-
-          select.appendChild(
-            option
+        const option =
+          document.createElement(
+            "option"
           );
 
-        }
-      );
 
-    }
+        option.value =
+          bulan;
+
+
+        option.textContent =
+          formatBulan(
+            bulan
+          );
+
+
+        select.appendChild(
+          option
+        );
+
+      }
+    );
 
 
     selectedMonth =
-      target;
+      res.currentMonth;
 
 
-    select.value =
-      selectedMonth;
+    if (
+      list.includes(
+        selectedMonth
+      )
+    ) {
+
+      select.value =
+        selectedMonth;
+
+    } else if (
+      list.length > 0
+    ) {
+
+      selectedMonth =
+        list[0];
+
+      select.value =
+        selectedMonth;
+
+    }
 
 
-    updateLabelBulan();
+    select.addEventListener(
+      "change",
+      async function () {
+
+        selectedMonth =
+          this.value;
+
+        await loadDashboard();
+
+      }
+    );
 
 
     await loadDashboard();
@@ -1592,35 +1397,12 @@ async function loadDaftarBulan(
     );
 
 
-    const tbody =
-      document.getElementById(
-        "tabelRiwayat"
-      );
+    alert(
 
+      "Gagal memuat daftar bulan: " +
+      error.message
 
-    tbody.innerHTML = `
-
-      <tr>
-
-        <td
-          colspan="5"
-          class="
-            text-center
-            text-danger
-          "
-        >
-
-          Gagal memuat daftar bulan:
-
-          ${escapeHtml(
-            error.message
-          )}
-
-        </td>
-
-      </tr>
-
-    `;
+    );
 
   }
 
@@ -1636,12 +1418,14 @@ function formatBulan(
 ) {
 
   if (
+
     !value ||
     !/^\d{4}-\d{2}$/
       .test(value)
+
   ) {
 
-    return value || "-";
+    return value;
 
   }
 
@@ -1685,46 +1469,16 @@ function formatBulan(
 
 
   return (
+
     namaBulan[
       Number(bulan) - 1
     ] +
+
     " " +
+
     tahun
+
   );
-
-}
-
-
-/* ==========================================================
-   UPDATE LABEL BULAN
-   ========================================================== */
-
-function updateLabelBulan() {
-
-  const label =
-    document.getElementById(
-      "labelBulan"
-    );
-
-
-  const labelModal =
-    document.getElementById(
-      "labelBulanPengaturan"
-    );
-
-
-  const text =
-    formatBulan(
-      selectedMonth
-    );
-
-
-  label.innerText =
-    text;
-
-
-  labelModal.innerText =
-    text;
 
 }
 
@@ -1747,10 +1501,7 @@ async function loadDashboard() {
 
       <td
         colspan="5"
-        class="
-          text-center
-          text-muted
-        "
+        class="text-center text-muted"
       >
 
         Memuat data...
@@ -1766,13 +1517,16 @@ async function loadDashboard() {
 
     const res =
       await apiRequest(
+
         "getDashboardData",
+
         {
 
           bulanTahun:
             selectedMonth
 
         }
+
       );
 
 
@@ -1781,82 +1535,148 @@ async function loadDashboard() {
     ) {
 
       throw new Error(
+
         res.message ||
         "Gagal mengambil data dashboard."
+
       );
 
     }
 
 
-    /*
-     * Jika backend memilih bulan berbeda,
-     * sinkronkan frontend.
-     */
+    /* ======================================================
+       SALDO AWAL
+       ====================================================== */
 
-    if (
-      res.selectedMonth &&
-      res.selectedMonth !==
-        selectedMonth
-    ) {
-
-      selectedMonth =
-        res.selectedMonth;
+    const saldoAwal =
+      Number(
+        res.saldoAwalBulan
+      ) || 0;
 
 
-      const select =
-        document.getElementById(
-          "selectBulan"
-        );
+    document.getElementById(
+      "valSaldoAwal"
+    ).innerText =
+      formatRupiah(
+        saldoAwal
+      );
 
 
-      select.value =
-        selectedMonth;
-
-    }
-
-
-    updateLabelBulan();
-
-
-    /*
-     * PEMASUKAN BULAN
-     */
+    /* ======================================================
+       PEMASUKAN
+       ====================================================== */
 
     document.getElementById(
       "valPemasukan"
     ).innerText =
       formatRupiah(
+
         res.totalPemasukan
+
       );
 
 
-    /*
-     * PENGELUARAN BULAN
-     */
+    /* ======================================================
+       PENGELUARAN
+       ====================================================== */
 
     document.getElementById(
       "valPengeluaran"
     ).innerText =
       formatRupiah(
+
         res.pengeluaranBulanIni
+
       );
 
 
-    /*
-     * SALDO BULAN
-     */
+    /* ======================================================
+       SALDO AKHIR
+       ====================================================== */
+
+    const saldoAkhir =
+      Number(
+        res.saldoAkhirBulan
+      ) || 0;
+
 
     document.getElementById(
       "valSaldo"
     ).innerText =
       formatRupiah(
-        res.saldo
+        saldoAkhir
       );
 
 
-    /*
-     * ANGGARAN
-     */
+    const saldoElement =
+      document.getElementById(
+        "valSaldo"
+      );
+
+
+    saldoElement.className =
+      "display-6 fw-bold " +
+      (
+        saldoAkhir < 0
+          ? "text-danger"
+          : "text-primary"
+      );
+
+
+    /* ======================================================
+       LABEL BULAN
+       ====================================================== */
+
+    document.getElementById(
+      "labelBulan"
+    ).innerText =
+      formatBulan(
+        res.selectedMonth
+      );
+
+
+    /* ======================================================
+       STATUS SALDO
+       ====================================================== */
+
+    const badgeSaldo =
+      document.getElementById(
+        "badgeSaldo"
+      );
+
+
+    badgeSaldo.className =
+      "badge";
+
+
+    if (
+      saldoAkhir < 0
+    ) {
+
+      badgeSaldo.classList.add(
+        "text-bg-danger"
+      );
+
+
+      badgeSaldo.innerText =
+        "Saldo Minus";
+
+    } else {
+
+      badgeSaldo.classList.add(
+        "text-bg-primary"
+      );
+
+
+      badgeSaldo.innerText =
+        "Saldo Berjalan";
+
+    }
+
+
+    /* ======================================================
+       ANGGARAN
+       ====================================================== */
 
     const anggaran =
       Number(
@@ -1906,9 +1726,9 @@ async function loadDashboard() {
       );
 
 
-    /*
-     * WARNA SISA
-     */
+    /* ======================================================
+       WARNA SISA ANGGARAN
+       ====================================================== */
 
     const sisaElement =
       document.getElementById(
@@ -1919,15 +1739,19 @@ async function loadDashboard() {
     sisaElement.className =
       "fs-4 fw-bold " +
       (
+
         sisa < 0
+
           ? "text-danger"
+
           : "text-success"
+
       );
 
 
-    /*
-     * PROGRESS
-     */
+    /* ======================================================
+       PROGRESS
+       ====================================================== */
 
     const progress =
       document.getElementById(
@@ -1937,11 +1761,14 @@ async function loadDashboard() {
 
     const progressValue =
       Math.min(
+
         Math.max(
           persen,
           0
         ),
+
         100
+
       );
 
 
@@ -1953,37 +1780,41 @@ async function loadDashboard() {
     document.getElementById(
       "persentaseAnggaran"
     ).innerText =
+
       persen.toFixed(1) +
       "%";
 
 
-    /*
-     * STATUS
-     */
+    /* ======================================================
+       STATUS ANGGARAN
+       ====================================================== */
 
     updateStatusAnggaran(
+
       res.statusAnggaran,
+
       persen,
+
       sisa,
+
       anggaran
+
     );
 
 
-    /*
-     * INPUT ANGGARAN
-     */
+    /* ======================================================
+       INPUT PENGATURAN
+       ====================================================== */
 
     document.getElementById(
       "inputAnggaran"
     ).value =
-      anggaran > 0
-        ? anggaran
-        : "";
+      anggaran;
 
 
-    /*
-     * RIWAYAT
-     */
+    /* ======================================================
+       RIWAYAT
+       ====================================================== */
 
     renderRiwayat(
       res.riwayat || []
@@ -2003,14 +1834,10 @@ async function loadDashboard() {
 
         <td
           colspan="5"
-          class="
-            text-center
-            text-danger
-          "
+          class="text-center text-danger"
         >
 
           Gagal memuat data:
-
           ${escapeHtml(
             error.message
           )}
@@ -2031,10 +1858,15 @@ async function loadDashboard() {
    ========================================================== */
 
 function updateStatusAnggaran(
+
   status,
+
   persen,
+
   sisa,
+
   anggaran
+
 ) {
 
   const badge =
@@ -2077,11 +1909,7 @@ function updateStatusAnggaran(
 
 
     alert.innerText =
-      "Anggaran untuk " +
-      formatBulan(
-        selectedMonth
-      ) +
-      " belum diatur. Silakan buka Pengaturan.";
+      "Anggaran bulanan belum diatur. Silakan buka Pengaturan.";
 
 
     return;
@@ -2166,11 +1994,7 @@ function updateStatusAnggaran(
 
 
   alert.innerText =
-    "Pengeluaran masih dalam batas anggaran " +
-    formatBulan(
-      selectedMonth
-    ) +
-    ".";
+    "Pengeluaran masih dalam batas anggaran bulanan.";
 
 }
 
@@ -2189,12 +2013,15 @@ function renderRiwayat(
     );
 
 
-  tbody.innerHTML = "";
+  tbody.innerHTML =
+    "";
 
 
   if (
+
     !riwayat ||
     riwayat.length === 0
+
   ) {
 
     tbody.innerHTML = `
@@ -2203,22 +2030,11 @@ function renderRiwayat(
 
         <td
           colspan="5"
-          class="
-            text-center
-            text-muted
-            empty-state
-          "
+          class="text-center text-muted"
         >
 
-          Belum ada transaksi pada
-
-          <strong>
-            ${escapeHtml(
-              formatBulan(
-                selectedMonth
-              )
-            )}
-          </strong>.
+          Belum ada transaksi
+          pada bulan ini.
 
         </td>
 
@@ -2233,7 +2049,9 @@ function renderRiwayat(
 
 
   riwayat.forEach(
-    function(item) {
+    function (
+      item
+    ) {
 
       const row =
         document.createElement(
@@ -2242,6 +2060,7 @@ function renderRiwayat(
 
 
       const badgeClass =
+
         item.tipe ===
         "Pemasukan"
 
@@ -2264,10 +2083,7 @@ function renderRiwayat(
         <td>
 
           <span
-            class="
-              badge
-              ${badgeClass}
-            "
+            class="badge ${badgeClass}"
           >
 
             ${escapeHtml(
@@ -2303,14 +2119,8 @@ function renderRiwayat(
 
           <button
             type="button"
-            class="
-              btn
-              btn-sm
-              btn-outline-danger
-            "
-            onclick="hapusData(${Number(
-              item.rowIndex
-            )})"
+            class="btn btn-sm btn-outline-danger"
+            onclick="hapusData(${Number(item.rowIndex)})"
           >
 
             Hapus
@@ -2356,16 +2166,11 @@ function tambahRow() {
 
   div.innerHTML = `
 
-    <div
-      class="col-8 col-md-7"
-    >
+    <div class="col-8 col-md-7">
 
       <input
         type="text"
-        class="
-          form-control
-          input-keterangan
-        "
+        class="form-control input-keterangan"
         placeholder="Contoh: Belanja"
         maxlength="250"
         required
@@ -2374,16 +2179,11 @@ function tambahRow() {
     </div>
 
 
-    <div
-      class="col-4 col-md-4"
-    >
+    <div class="col-4 col-md-4">
 
       <input
         type="number"
-        class="
-          form-control
-          input-jumlah
-        "
+        class="form-control input-jumlah"
         placeholder="Jumlah (Rp)"
         min="1"
         step="1"
@@ -2393,22 +2193,11 @@ function tambahRow() {
     </div>
 
 
-    <div
-      class="
-        col-12
-        col-md-1
-        text-center
-      "
-    >
+    <div class="col-12 col-md-1 text-center">
 
       <button
         type="button"
-        class="
-          btn
-          btn-outline-danger
-          btn-sm
-          w-100
-        "
+        class="btn btn-outline-danger btn-sm w-100"
         onclick="hapusRow(this)"
       >
 
@@ -2457,17 +2246,11 @@ function hapusRow(
   }
 
 
-  const row =
-    button.closest(
+  button
+    .closest(
       ".item-row"
-    );
-
-
-  if (row) {
-
-    row.remove();
-
-  }
+    )
+    .remove();
 
 }
 
@@ -2481,8 +2264,12 @@ document
     "formTransaksi"
   )
   .addEventListener(
+
     "submit",
-    async function(e) {
+
+    async function (
+      e
+    ) {
 
       e.preventDefault();
 
@@ -2503,27 +2290,6 @@ document
 
       try {
 
-        const tanggal =
-          document.getElementById(
-            "tanggal"
-          ).value;
-
-
-        const tipe =
-          document.getElementById(
-            "tipe"
-          ).value;
-
-
-        if (!tanggal) {
-
-          throw new Error(
-            "Tanggal transaksi harus diisi."
-          );
-
-        }
-
-
         const items = [];
 
 
@@ -2532,40 +2298,41 @@ document
             ".item-row"
           )
           .forEach(
-            function(row) {
-
-              const inputKeterangan =
-                row.querySelector(
-                  ".input-keterangan"
-                );
-
-
-              const inputJumlah =
-                row.querySelector(
-                  ".input-jumlah"
-                );
-
+            function (
+              row
+            ) {
 
               const keterangan =
-                inputKeterangan
-                  ? inputKeterangan.value.trim()
-                  : "";
+                row
+                  .querySelector(
+                    ".input-keterangan"
+                  )
+                  .value
+                  .trim();
 
 
               const jumlah =
-                inputJumlah
-                  ? Number(
-                      inputJumlah.value
+                Number(
+
+                  row
+                    .querySelector(
+                      ".input-jumlah"
                     )
-                  : 0;
+                    .value
+
+                );
 
 
               if (
+
                 keterangan &&
+
                 Number.isFinite(
                   jumlah
                 ) &&
+
                 jumlah > 0
+
               ) {
 
                 items.push({
@@ -2598,10 +2365,14 @@ document
         const payload = {
 
           tanggal:
-            tanggal,
+            document.getElementById(
+              "tanggal"
+            ).value,
 
           tipe:
-            tipe,
+            document.getElementById(
+              "tipe"
+            ).value,
 
           items:
             items
@@ -2611,8 +2382,11 @@ document
 
         const res =
           await apiRequest(
+
             "simpanTransaksi",
+
             payload
+
           );
 
 
@@ -2621,8 +2395,10 @@ document
         ) {
 
           throw new Error(
+
             res.message ||
             "Transaksi gagal disimpan."
+
           );
 
         }
@@ -2633,40 +2409,15 @@ document
         );
 
 
-        /*
-         * Bulan transaksi otomatis
-         * menjadi bulan yang ditampilkan.
-         *
-         * Misalnya memasukkan transaksi
-         * tanggal 2026-09-15,
-         * dashboard akan berpindah ke
-         * September 2026.
-         */
-
-        const bulanTransaksi =
-          tanggal.substring(
-            0,
-            7
-          );
-
-
-        selectedMonth =
-          bulanTransaksi;
-
-
         resetItemForm();
 
 
-        /*
-         * Refresh daftar bulan.
-         */
-
-        await loadDaftarBulan(
-          bulanTransaksi
-        );
+        await loadDaftarBulan();
 
 
-      } catch (error) {
+      } catch (
+        error
+      ) {
 
         console.error(
           error
@@ -2674,9 +2425,12 @@ document
 
 
         alert(
+
           "Terjadi kesalahan: " +
           error.message
+
         );
+
 
       } finally {
 
@@ -2690,6 +2444,7 @@ document
       }
 
     }
+
   );
 
 
@@ -2704,12 +2459,10 @@ function resetItemForm() {
   ).innerHTML = `
 
     <div
-      class="
-        item-row
-        row
-        g-2
-        align-items-center
-      "
+      class="item-row
+             row
+             g-2
+             align-items-center"
     >
 
       <div
@@ -2718,10 +2471,7 @@ function resetItemForm() {
 
         <input
           type="text"
-          class="
-            form-control
-            input-keterangan
-          "
+          class="form-control input-keterangan"
           placeholder="Contoh: Belanja"
           maxlength="250"
           required
@@ -2736,10 +2486,7 @@ function resetItemForm() {
 
         <input
           type="number"
-          class="
-            form-control
-            input-jumlah
-          "
+          class="form-control input-jumlah"
           placeholder="Jumlah (Rp)"
           min="1"
           step="1"
@@ -2750,21 +2497,12 @@ function resetItemForm() {
 
 
       <div
-        class="
-          col-12
-          col-md-1
-          text-center
-        "
+        class="col-12 col-md-1 text-center"
       >
 
         <button
           type="button"
-          class="
-            btn
-            btn-outline-danger
-            btn-sm
-            w-100
-          "
+          class="btn btn-outline-danger btn-sm w-100"
           onclick="hapusRow(this)"
         >
 
@@ -2800,26 +2538,17 @@ async function simpanAnggaran() {
 
 
   if (
-    !Number.isFinite(nilai) ||
+
+    !Number.isFinite(
+      nilai
+    ) ||
+
     nilai < 0
+
   ) {
 
     alert(
       "Anggaran harus berupa angka 0 atau lebih."
-    );
-
-
-    return;
-
-  }
-
-
-  if (
-    !selectedMonth
-  ) {
-
-    alert(
-      "Bulan belum dipilih."
     );
 
 
@@ -2846,7 +2575,9 @@ async function simpanAnggaran() {
 
     const res =
       await apiRequest(
+
         "simpanAnggaranBulanan",
+
         {
 
           bulanTahun:
@@ -2856,6 +2587,7 @@ async function simpanAnggaran() {
             nilai
 
         }
+
       );
 
 
@@ -2864,8 +2596,10 @@ async function simpanAnggaran() {
     ) {
 
       throw new Error(
+
         res.message ||
         "Gagal menyimpan anggaran."
+
       );
 
     }
@@ -2901,7 +2635,9 @@ async function simpanAnggaran() {
     await loadDashboard();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       error
@@ -2909,9 +2645,12 @@ async function simpanAnggaran() {
 
 
     alert(
+
       "Gagal menyimpan anggaran: " +
       error.message
+
     );
+
 
   } finally {
 
@@ -2950,7 +2689,9 @@ async function hapusData(
 
     const res =
       await apiRequest(
+
         "hapusTransaksi",
+
         {
 
           rowIndex:
@@ -2959,6 +2700,7 @@ async function hapusData(
             )
 
         }
+
       );
 
 
@@ -2967,8 +2709,10 @@ async function hapusData(
     ) {
 
       throw new Error(
+
         res.message ||
         "Gagal menghapus transaksi."
+
       );
 
     }
@@ -2982,7 +2726,9 @@ async function hapusData(
     await loadDashboard();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       error
@@ -2990,8 +2736,10 @@ async function hapusData(
 
 
     alert(
+
       "Gagal menghapus transaksi: " +
       error.message
+
     );
 
   }
