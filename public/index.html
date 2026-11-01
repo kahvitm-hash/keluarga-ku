@@ -212,10 +212,16 @@
         </div>
 
 
-        <select
-          id="selectBulan"
-          class="form-select month-select"
-        ></select>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-outline-secondary" id="btnBulanSebelumnya" aria-label="Bulan sebelumnya">‹</button>
+          <input
+            type="month"
+            id="selectBulan"
+            class="form-control month-select"
+            aria-label="Pilih periode bulan"
+          >
+          <button type="button" class="btn btn-outline-secondary" id="btnBulanBerikutnya" aria-label="Bulan berikutnya">›</button>
+        </div>
 
       </div>
 
@@ -1051,40 +1057,47 @@ const API_URL = "/api";
    ========================================================== */
 
 let selectedMonth = "";
+let dashboardRequestId = 0;
 
 
 /* ==========================================================
    INITIAL
-   =========================document.addEventListener(
-  "DOMContentLoaded",
-  async function () {
+   ========================================================== */
 
-    setTanggalHariIni();
+document.addEventListener("DOMContentLoaded", async function () {
+  setTanggalHariIni();
 
+  const now = new Date();
+  selectedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-    const select =
-      document.getElementById(
-        "selectBulan"
-      );
+  const periodInput = document.getElementById("selectBulan");
+  periodInput.value = selectedMonth;
 
+  periodInput.addEventListener("change", async function () {
+    if (!/^\d{4}-\d{2}$/.test(this.value)) return;
+    selectedMonth = this.value;
+    await loadDashboard();
+  });
 
-    select.addEventListener(
-      "change",
-      async function () {
+  document.getElementById("btnBulanSebelumnya").addEventListener("click", function () {
+    geserBulan(-1);
+  });
 
-        selectedMonth =
-          this.value;
+  document.getElementById("btnBulanBerikutnya").addEventListener("click", function () {
+    geserBulan(1);
+  });
 
-        await loadDashboard();
+  await loadDashboard();
+});
 
-      }
-    );
-
-
-    await loadDaftarBulan();
-
-  }
-);
+function geserBulan(perubahan) {
+  if (!selectedMonth) return;
+  const [tahun, bulan] = selectedMonth.split("-").map(Number);
+  const tanggal = new Date(tahun, bulan - 1 + perubahan, 1);
+  selectedMonth = `${tanggal.getFullYear()}-${String(tanggal.getMonth() + 1).padStart(2, "0")}`;
+  document.getElementById("selectBulan").value = selectedMonth;
+  loadDashboard();
+}
 
 
 /* ==========================================================
@@ -1296,147 +1309,13 @@ async function apiRequest(
 
 
 /* ==========================================================
-   DAFTAR BULAN
+   PERIODE BULAN
    ========================================================== */
 
-async function loadDaftarBulan() {
-
-  try {
-
-    const res =
-      await apiRequest(
-        "getDaftarBulan"
-      );
-
-
-    if (!res.success) {
-
-      throw new Error(
-        res.message ||
-        "Gagal mengambil daftar bulan."
-      );
-
-    }
-
-
-    const select =
-      document.getElementById(
-        "selectBulan"
-      );
-
-
-    const list =
-      Array.isArray(
-        res.listBulan
-      )
-        ? res.listBulan
-        : [];
-
-
-    select.innerHTML = "";
-
-
-    /*
-     * MASUKKAN SEMUA BULAN
-     */
-
-    list.forEach(
-      function (bulan) {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          bulan;
-
-
-        option.textContent =
-          formatBulan(
-            bulan
-          );
-
-
-        select.appendChild(
-          option
-        );
-
-      }
-    );
-
-
-    /*
-     * PERTAHANKAN BULAN
-     * YANG SEDANG DIPILIH
-     */
-
-    if (
-      selectedMonth &&
-      list.includes(
-        selectedMonth
-      )
-    ) {
-
-      select.value =
-        selectedMonth;
-
-    }
-
-    /*
-     * Kalau belum ada pilihan,
-     * gunakan bulan sekarang.
-     */
-
-    else if (
-      list.includes(
-        res.currentMonth
-      )
-    ) {
-
-      selectedMonth =
-        res.currentMonth;
-
-      select.value =
-        selectedMonth;
-
-    }
-
-    /*
-     * Fallback ke bulan pertama
-     */
-
-    else if (
-      list.length > 0
-    ) {
-
-      selectedMonth =
-        list[0];
-
-      select.value =
-        selectedMonth;
-
-    }
-
-
-    await loadDashboard();
-
-
-  } catch (error) {
-
-    console.error(
-      error
-    );
-
-
-    alert(
-      "Gagal memuat daftar bulan: " +
-      error.message
-    );
-
-  }
-
+function setPeriodeBulan(value) {
+  if (!/^\d{4}-\d{2}$/.test(value || "")) return;
+  selectedMonth = value;
+  document.getElementById("selectBulan").value = value;
 }
 
 
@@ -1519,6 +1398,8 @@ function formatBulan(
    ========================================================== */
 
 async function loadDashboard() {
+  const requestId = ++dashboardRequestId;
+  const bulanDiminta = selectedMonth;
 
   const tbody =
     document.getElementById(
@@ -1554,12 +1435,13 @@ async function loadDashboard() {
         {
 
           bulanTahun:
-            selectedMonth
+            bulanDiminta
 
         }
 
       );
 
+    if (requestId !== dashboardRequestId) return;
 
     if (
       !res.success
@@ -1662,7 +1544,7 @@ async function loadDashboard() {
       "labelBulan"
     ).innerText =
       formatBulan(
-        res.selectedMonth
+        res.selectedMonth || bulanDiminta
       );
 
 
@@ -2442,8 +2324,10 @@ document
 
         resetItemForm();
 
-
-        await loadDaftarBulan();
+        // Tampilkan periode sesuai tanggal transaksi yang baru disimpan.
+        const bulanTransaksi = payload.tanggal.slice(0, 7);
+        setPeriodeBulan(bulanTransaksi);
+        await loadDashboard();
 
 
       } catch (
@@ -2612,7 +2496,7 @@ async function simpanAnggaran() {
         {
 
           bulanTahun:
-            selectedMonth,
+            bulanDiminta,
 
           anggaran:
             nilai
