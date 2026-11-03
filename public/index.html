@@ -172,7 +172,14 @@
 
     </div>
 
-
+    <button
+  type="button"
+  id="btnInstallApp"
+  class="btn btn-primary d-none"
+>
+  📲 Instal Aplikasi
+</button>
+    
     <button
       type="button"
       class="btn btn-outline-secondary"
@@ -2673,7 +2680,56 @@ async function hapusData(
 
 </script>
 
+<script>
+let deferredInstallPrompt = null;
 
+const installButton = document.getElementById("btnInstallApp");
+
+// Daftarkan Service Worker
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(function (registration) {
+        console.log("PWA aktif:", registration.scope);
+      })
+      .catch(function (error) {
+        console.error("PWA gagal diaktifkan:", error);
+      });
+  });
+}
+
+// Tangkap kesempatan instalasi dari Chrome
+window.addEventListener("beforeinstallprompt", function (event) {
+  event.preventDefault();
+
+  deferredInstallPrompt = event;
+  installButton.classList.remove("d-none");
+});
+
+// Ketika tombol instalasi ditekan
+installButton.addEventListener("click", async function () {
+  if (!deferredInstallPrompt) {
+    alert("Silakan buka menu Chrome lalu pilih Instal aplikasi atau Tambahkan ke layar utama.");
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+
+  const result = await deferredInstallPrompt.userChoice;
+
+  console.log("Hasil instalasi:", result.outcome);
+
+  deferredInstallPrompt = null;
+  installButton.classList.add("d-none");
+});
+
+// Ketika aplikasi berhasil dipasang
+window.addEventListener("appinstalled", function () {
+  installButton.classList.add("d-none");
+  console.log("Aplikasi berhasil diinstal.");
+});
+</script>
+  
 </body>
 
 </html>
